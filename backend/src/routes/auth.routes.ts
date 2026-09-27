@@ -38,11 +38,19 @@ const handleMockGoogleLogin = async (req: Request, res: Response, next: any) => 
   }
 };
 
-// 1. Initialize Google OAuth flow (Instant & Reliable)
-router.get('/google', handleMockGoogleLogin);
+// 1. Initialize Google OAuth flow
+router.get('/google', passport.authenticate('google', { scope: ['profile', 'email'] }));
 
 // 2. Google OAuth callback
-router.get('/google/callback', handleMockGoogleLogin);
+router.get(
+  '/google/callback',
+  passport.authenticate('google', { failureRedirect: '/login' }),
+  (req: Request, res: Response) => {
+    req.session.save(() => {
+      res.redirect(`${config.clientUrl.replace(/\/$/, '')}/dashboard`);
+    });
+  }
+);
 
 // 3. Direct / Demo Login (Email & Password or 1-Click Demo)
 const handleDirectLogin = async (req: Request, res: Response, next: any) => {
