@@ -1,10 +1,14 @@
 import Redis from 'ioredis';
 import { config } from './index';
 
-export const redisConnection = new Redis(config.redis.url, {
-  maxRetriesPerRequest: null,
-  lazyConnect: true,
-});
+export const createRedisConnection = () => {
+  return new Redis(config.redis.url, {
+    maxRetriesPerRequest: null,
+    enableReadyCheck: false,
+  });
+};
+
+export const redisConnection = createRedisConnection();
 
 redisConnection.on('connect', () => {
   console.log('[Redis] Connected successfully');

@@ -37,12 +37,12 @@ export const handleSlackCallbackService = async (userId: string, code: string) =
       throw new Error(data.error || 'Failed to authenticate with Slack');
     }
 
-    const accessToken = data.access_token;
+    const accessToken = data.access_token || data.authed_user?.access_token;
     const slackTeamId = data.team?.id;
-    const slackUserId = data.authed_user?.id;
+    const slackUserId = data.authed_user?.id || data.bot_user_id || data.user_id || data.user?.id || 'default';
 
-    if (!accessToken || !slackTeamId || !slackUserId) {
-      throw new Error('Invalid response from Slack. Missing access token, team ID, or user ID.');
+    if (!accessToken || !slackTeamId) {
+      throw new Error('Invalid response from Slack. Missing access token or team ID.');
     }
 
     // Upsert the Slack connection for the user securely
@@ -114,15 +114,18 @@ export const sendRateLimitNotification = async (userId: string, limit: number) =
       prisma.slackConnection.findUnique({ where: { userId } })
     ]);
 
-    if (!user || !connection || !connection.accessToken || !connection.slackUserId) {
+    if (!user || !connection || !connection.accessToken) {
       return; // Do nothing if not connected or user deleted
     }
 
-    // 2. Send the message directly using the stored user ID
+    const targetChannel = connection.slackUserId || connection.slackTeamId;
+    if (!targetChannel) return;
+
+    // 2. Send the message directly using the stored user ID or team channel
     const text = `*Email sending rate limit reached.*\nSender: ${user.email}\nHourly limit: ${limit}.\nRemaining emails have been rescheduled.`;
 
     const messageRes = await axios.post('https://slack.com/api/chat.postMessage', {
-      channel: connection.slackUserId,
+      channel: targetChannel,
       text
     }, {
       headers: { 

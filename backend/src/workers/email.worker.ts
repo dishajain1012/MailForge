@@ -1,5 +1,5 @@
 import { Worker, Job, DelayedError } from 'bullmq';
-import { redisConnection } from '../config/redis';
+import { createRedisConnection } from '../config/redis';
 import { EMAIL_QUEUE_NAME, EmailJobPayload } from '../queues/email.queue';
 import { logger } from '../utils/logger';
 import { config } from '../config';
@@ -121,7 +121,7 @@ export const createEmailWorker = () => {
       }
     },
     { 
-      connection: redisConnection,
+      connection: createRedisConnection(),
       concurrency: config.workerConcurrency || 5
     }
   );

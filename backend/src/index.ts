@@ -1,17 +1,10 @@
 import app from './app';
 import { config } from './config';
 import { logger } from './utils/logger';
-import { redisConnection } from './config/redis';
 import { createEmailWorker } from './workers/email.worker';
 
 const startServer = async () => {
   try {
-    try {
-      await redisConnection.connect();
-    } catch (redisErr: any) {
-      logger.warn('Redis connection deferred or unavailable:', redisErr.message);
-    }
-
     createEmailWorker();
 
     app.listen(config.port, () => {
