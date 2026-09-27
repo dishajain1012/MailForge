@@ -48,29 +48,6 @@ export const requireAuth = async (req: Request, res: Response, next: NextFunctio
     } catch (e) {}
   }
 
-  // Fallback demo user so dev mode and testing never block the user
-  try {
-    const defaultEmail = 'demo@mailforge.com';
-    let demoUser = await prisma.user.findUnique({
-      where: { email: defaultEmail },
-      select: { id: true, email: true, name: true, avatarUrl: true }
-    });
-
-    if (!demoUser) {
-      demoUser = await prisma.user.create({
-        data: {
-          email: defaultEmail,
-          name: 'Demo User',
-          avatarUrl: 'https://api.dicebear.com/7.x/avataaars/svg?seed=DemoUser',
-        },
-        select: { id: true, email: true, name: true, avatarUrl: true }
-      });
-    }
-
-    req.user = demoUser;
-    return next();
-  } catch (err) {
-    res.status(401).json({ success: false, message: 'Unauthorized. Please log in.' });
-  }
+  return res.status(401).json({ success: false, message: 'Unauthorized. Please log in.' });
 };
 
