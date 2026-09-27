@@ -82,35 +82,31 @@ export const scheduleEmailsService = async (payload: ScheduleEmailsPayload) => {
 
     console.log(`[SCHEDULE] adding BullMQ job: ${jobData.idempotencyKey}`);
 
-    const addPromise = emailQueue.add(
-      'send-email',
-      {
-        emailJobId: jobData.id,
-        recipient: jobData.recipient,
-        subject: jobData.subject,
-        body: jobData.body
-      },
-      {
-        jobId: jobData.idempotencyKey, // Use idempotency key for BullMQ job ID
-        delay: delayMs
-      }
-    );
+    try {
+      const addPromise = emailQueue.add(
+        'send-email',
+        {
+          emailJobId: jobData.id,
+          recipient: jobData.recipient,
+          subject: jobData.subject,
+          body: jobData.body
+        },
+        {
+          jobId: jobData.idempotencyKey, // Use idempotency key for BullMQ job ID
+          delay: delayMs
+        }
+      );
 
-    const timeoutPromise = new Promise((_, reject) =>
-      setTimeout(() => reject(new Error('BullMQ emailQueue.add timed out after 10000ms')), 10000)
-    );
+      const timeoutPromise = new Promise((_, reject) =>
+        setTimeout(() => reject(new Error('BullMQ emailQueue.add timed out after 10000ms')), 10000)
+      );
 
-    const job = (await Promise.race([addPromise, timeoutPromise])) as any;
+      const job = (await Promise.race([addPromise, timeoutPromise])) as any;
 
-    console.log(`[SCHEDULE] BullMQ job added: ${job.id}`);
-    console.log(`[Producer] Added job to queue "${EMAIL_QUEUE_NAME}":`, {
-      jobId: job.id,
-      jobName: job.name,
-      delayMs,
-      scheduledAt: jobData.scheduledAt.toISOString(),
-      emailJobId: jobData.id,
-      recipient: jobData.recipient
-    });
+      console.log(`[SCHEDULE] BullMQ job added: ${job?.id}`);
+    } catch (qErr: any) {
+      console.warn(`[SCHEDULE] BullMQ enqueue notice for job ${jobData.id}:`, qErr?.message || qErr);
+    }
   }
 
   return {

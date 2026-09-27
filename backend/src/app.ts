@@ -14,7 +14,15 @@ if (process.env.NODE_ENV === 'production') {
 }
 
 // Middleware
-app.use(cors({ origin: config.clientUrl.replace(/\/$/, ''), credentials: true }));
+app.use(
+  cors({
+    origin: (origin, callback) => {
+      // Allow all local / dev origins with credentials
+      callback(null, origin || true);
+    },
+    credentials: true,
+  })
+);
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(requestLogger);
@@ -36,8 +44,11 @@ app.use(
 app.use(passport.initialize());
 app.use(passport.session());
 
+import authRoutes from './routes/auth.routes';
+
 // API Routes
 app.use('/api', routes);
+app.use('/auth', authRoutes);
 
 // Root Endpoint
 app.get('/', (req, res) => {

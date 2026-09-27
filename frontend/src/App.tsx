@@ -62,7 +62,7 @@ export const App: React.FC = () => {
       <Routes>
         <Route 
           path="/login" 
-          element={user ? <Navigate to="/dashboard" replace /> : <LoginPage />} 
+          element={user ? <Navigate to="/dashboard" replace /> : <LoginPage onLoginSuccess={(u) => setUser(u)} />} 
         />
         
         {/* Protected Routes */}
