@@ -5,7 +5,13 @@ import { createEmailWorker } from './workers/email.worker';
 
 const startServer = async () => {
   try {
-    createEmailWorker();
+    const workerEnabled = process.env.WORKER_ENABLED !== 'false';
+    if (workerEnabled) {
+      createEmailWorker();
+      logger.info('BullMQ Email Worker enabled for this process');
+    } else {
+      logger.info('BullMQ Email Worker disabled for this process (WORKER_ENABLED=false)');
+    }
 
     app.listen(config.port, () => {
       logger.info(`Server running on port ${config.port} in ${config.nodeEnv} mode`);
