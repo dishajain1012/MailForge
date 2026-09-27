@@ -33,10 +33,10 @@ export const slackCallback = async (req: Request, res: Response) => {
 
     await handleSlackCallbackService(userId, code);
     
-    // Redirect back to frontend settings or dashboard
-    res.redirect(`${config.clientUrl}?slack_connected=true`);
+    // Redirect back to frontend dashboard with status query param
+    res.redirect(`${config.clientUrl}/dashboard?slack_connected=true`);
   } catch (error: any) {
-    res.redirect(`${config.clientUrl}?slack_error=${encodeURIComponent(error.message)}`);
+    res.redirect(`${config.clientUrl}/dashboard?slack_error=${encodeURIComponent(error.message)}`);
   }
 };
 

@@ -8,7 +8,7 @@ export const getSlackAuthUrl = (state: string) => {
   const { clientId, redirectUri } = config.slack;
   const scopes = ['chat:write']; // Minimum scopes needed for notifications
   
-  return `https://slack.com/oauth/v2/authorize?client_id=${clientId}&scope=${scopes.join(',')}&redirect_uri=${redirectUri}&state=${state}`;
+  return `https://slack.com/oauth/v2/authorize?client_id=${clientId}&scope=${scopes.join(',')}&redirect_uri=${encodeURIComponent(redirectUri)}&state=${encodeURIComponent(state)}`;
 };
 
 export const handleSlackCallbackService = async (userId: string, code: string) => {
