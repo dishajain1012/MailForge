@@ -37,6 +37,7 @@ export const scheduleEmailsService = async (payload: ScheduleEmailsPayload) => {
   }
 
   // Create campaign
+  console.log('[SCHEDULE] creating campaign');
   const campaign = await prisma.emailCampaign.create({
     data: {
       userId,
@@ -47,6 +48,7 @@ export const scheduleEmailsService = async (payload: ScheduleEmailsPayload) => {
       hourlyLimit: hourlyLimit || 0,
     }
   });
+  console.log(`[SCHEDULE] campaign created: ${campaign.id}`);
 
   const jobsData = validRecipients.map((recipient, index) => {
     // Calculate scheduledAt based on delay
@@ -66,6 +68,7 @@ export const scheduleEmailsService = async (payload: ScheduleEmailsPayload) => {
     };
   });
 
+  console.log(`[SCHEDULE] creating email jobs: ${jobsData.length}`);
   // Create DB records
   await prisma.emailJob.createMany({
     data: jobsData
@@ -77,7 +80,9 @@ export const scheduleEmailsService = async (payload: ScheduleEmailsPayload) => {
     const now = Date.now();
     const delayMs = Math.max(0, jobData.scheduledAt.getTime() - now);
 
-    const job = await emailQueue.add(
+    console.log(`[SCHEDULE] adding BullMQ job: ${jobData.idempotencyKey}`);
+
+    const addPromise = emailQueue.add(
       'send-email',
       {
         emailJobId: jobData.id,
@@ -91,6 +96,13 @@ export const scheduleEmailsService = async (payload: ScheduleEmailsPayload) => {
       }
     );
 
+    const timeoutPromise = new Promise((_, reject) =>
+      setTimeout(() => reject(new Error('BullMQ emailQueue.add timed out after 10000ms')), 10000)
+    );
+
+    const job = (await Promise.race([addPromise, timeoutPromise])) as any;
+
+    console.log(`[SCHEDULE] BullMQ job added: ${job.id}`);
     console.log(`[Producer] Added job to queue "${EMAIL_QUEUE_NAME}":`, {
       jobId: job.id,
       jobName: job.name,

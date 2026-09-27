@@ -5,7 +5,6 @@ const isTls = config.redis.url.startsWith('rediss://');
 
 export const getRedisOptions = (): RedisOptions => ({
   maxRetriesPerRequest: null,
-  enableReadyCheck: false,
   keepAlive: 10000,
   ...(isTls && {
     tls: {
