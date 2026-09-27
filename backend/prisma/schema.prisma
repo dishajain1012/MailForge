@@ -1,0 +1,88 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id               String            @id @default(uuid())
+  googleId         String?           @unique
+  name             String?
+  email            String            @unique
+  avatarUrl        String?
+  createdAt        DateTime          @default(now())
+  updatedAt        DateTime          @updatedAt
+
+  emailCampaigns   EmailCampaign[]
+  emailJobs        EmailJob[]
+  slackConnections SlackConnection[]
+
+  @@map("users")
+}
+
+model EmailCampaign {
+  id                 String     @id @default(uuid())
+  userId             String
+  user               User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  subject            String
+  body               String     @db.Text
+  startTime          DateTime
+  delayBetweenEmails Int        @default(0) // in seconds or ms
+  hourlyLimit        Int        @default(0) // 0 means no limit
+  createdAt          DateTime   @default(now())
+  updatedAt          DateTime   @updatedAt
+
+  emailJobs          EmailJob[]
+
+  @@index([userId])
+  @@map("email_campaigns")
+}
+
+model EmailJob {
+  id             String        @id @default(uuid())
+  campaignId     String
+  campaign       EmailCampaign @relation(fields: [campaignId], references: [id], onDelete: Cascade)
+  userId         String
+  user           User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  recipient      String
+  subject        String
+  body           String        @db.Text
+  scheduledAt    DateTime
+  status         JobStatus     @default(PENDING)
+  idempotencyKey String        @unique
+  attempts       Int           @default(0)
+  sentAt         DateTime?
+  failedAt       DateTime?
+  errorMessage   String?       @db.Text
+  createdAt      DateTime      @default(now())
+  updatedAt      DateTime      @updatedAt
+
+  @@index([campaignId])
+  @@index([userId])
+  @@index([status, scheduledAt])
+  @@map("email_jobs")
+}
+
+model SlackConnection {
+  id          String   @id @default(uuid())
+  userId      String   @unique
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  slackTeamId String
+  slackUserId String   @default("")
+  accessToken String
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@map("slack_connections")
+}
+
+enum JobStatus {
+  PENDING
+  SCHEDULED
+  PROCESSING
+  COMPLETED
+  FAILED
+}
