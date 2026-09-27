@@ -10,8 +10,8 @@
     "build:frontend": "cd frontend && npm run build",
     "docker:up": "docker compose up -d",
     "docker:down": "docker compose down",
-    "prisma:generate": "cd backend && npx prisma generate",
-    "prisma:push": "cd backend && npx prisma db push"
+    "prisma:generate": "cd backend && prisma generate",
+    "prisma:push": "cd backend && prisma db push"
   },
   "workspaces": [
     "backend",
