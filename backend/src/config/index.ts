@@ -29,5 +29,5 @@ export const config = {
     callbackUrl: process.env.GOOGLE_CALLBACK_URL || 'http://localhost:5000/api/auth/google/callback',
   },
   sessionSecret: process.env.SESSION_SECRET || 'super_secret_session_key',
-  clientUrl: process.env.CLIENT_URL || 'http://localhost:5173',
+  clientUrl: (process.env.CLIENT_URL || 'http://localhost:5173').replace(/\/$/, ''),
 };

@@ -18,8 +18,10 @@ router.get(
     failureRedirect: `${config.clientUrl}/login?error=auth_failed`,
   }),
   (req: Request, res: Response) => {
-    // Successful authentication, redirect to frontend dashboard
-    res.redirect(`${config.clientUrl}/dashboard`);
+    // Successful authentication, save session before redirecting to frontend dashboard
+    req.session.save(() => {
+      res.redirect(`${config.clientUrl.replace(/\/$/, '')}/dashboard`);
+    });
   }
 );
 

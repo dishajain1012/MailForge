@@ -9,8 +9,12 @@ import { errorHandler } from './middleware/error.middleware';
 
 const app: Express = express();
 
+if (process.env.NODE_ENV === 'production') {
+  app.set('trust proxy', 1);
+}
+
 // Middleware
-app.use(cors({ origin: config.clientUrl, credentials: true }));
+app.use(cors({ origin: config.clientUrl.replace(/\/$/, ''), credentials: true }));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(requestLogger);
@@ -23,6 +27,7 @@ app.use(
     saveUninitialized: false,
     cookie: {
       secure: process.env.NODE_ENV === 'production',
+      sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
       httpOnly: true,
       maxAge: 1000 * 60 * 60 * 24 // 1 day
     }
