@@ -17,18 +17,30 @@ const App: React.FC = () => {
 
   useEffect(() => {
     const initAuth = async () => {
-      const res = await checkAuth();
-      if (res.success && res.data) {
-        setUser(res.data);
+      try {
+        const res = await checkAuth();
+        if (res.success && res.data) {
+          setUser(res.data);
+        } else {
+          setUser(null);
+        }
+      } catch (e) {
+        setUser(null);
+      } finally {
+        setLoading(false);
       }
-      setLoading(false);
     };
     initAuth();
   }, []);
 
   const handleLogout = async () => {
-    await logout();
-    setUser(null);
+    try {
+      await logout();
+    } catch (err) {
+      console.error('Logout error:', err);
+    } finally {
+      setUser(null);
+    }
   };
 
   if (loading) {
@@ -38,6 +50,10 @@ const App: React.FC = () => {
   return (
     <BrowserRouter>
       <Routes>
+        <Route 
+          path="/" 
+          element={<Navigate to={user ? "/dashboard" : "/login"} replace />} 
+        />
         <Route 
           path="/login" 
           element={user ? <Navigate to="/dashboard" replace /> : <LoginPage />} 
@@ -56,7 +72,6 @@ const App: React.FC = () => {
             <Navigate to="/login" replace />
           )}
         >
-          <Route path="/" element={<Navigate to="/dashboard" replace />} />
           <Route path="/dashboard" element={
             <div className="p-8 h-full overflow-y-auto bg-gray-50">
               <DashboardPage />
@@ -74,7 +89,7 @@ const App: React.FC = () => {
           } />
         </Route>
         
-        <Route path="*" element={<Navigate to="/" replace />} />
+        <Route path="*" element={<Navigate to={user ? "/dashboard" : "/login"} replace />} />
       </Routes>
     </BrowserRouter>
   );

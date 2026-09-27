@@ -66,6 +66,11 @@ export const Sidebar: React.FC<SidebarProps> = ({ user, onLogout }) => {
 
   const activeTab = new URLSearchParams(location.search).get('tab') || 'scheduled';
 
+  const handleLogoutClick = async () => {
+    await onLogout();
+    navigate('/login', { replace: true });
+  };
+
   return (
     <div className="w-[260px] bg-gray-50 border-r border-gray-200 min-h-screen flex flex-col shrink-0">
       {/* Logo */}
@@ -161,7 +166,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ user, onLogout }) => {
           </a>
         )}
         <button 
-          onClick={onLogout} 
+          onClick={handleLogoutClick} 
           className="w-full flex items-center space-x-3 px-3 py-2 text-gray-500 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-colors text-sm font-medium"
         >
           <LogOut className="w-5 h-5" />

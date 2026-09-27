@@ -11,5 +11,9 @@ export const checkAuth = async (): Promise<AuthResponse> => {
 };
 
 export const logout = async (): Promise<void> => {
-  await api.post('/auth/logout');
+  try {
+    await api.post('/auth/logout');
+  } catch (error) {
+    console.error('Logout request failed:', error);
+  }
 };
