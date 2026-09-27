@@ -11,26 +11,36 @@ import { DashboardPage } from './pages/DashboardPage';
 import { ComposePage } from './pages/ComposePage';
 import { EmailDetailsPage } from './pages/EmailDetailsPage';
 
-const App: React.FC = () => {
+export const App: React.FC = () => {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    let isMounted = true;
     const initAuth = async () => {
       try {
         const res = await checkAuth();
-        if (res.success && res.data) {
-          setUser(res.data);
-        } else {
-          setUser(null);
+        if (isMounted) {
+          if (res.success && res.data) {
+            setUser(res.data);
+          } else {
+            setUser(null);
+          }
         }
       } catch (e) {
-        setUser(null);
+        if (isMounted) {
+          setUser(null);
+        }
       } finally {
-        setLoading(false);
+        if (isMounted) {
+          setLoading(false);
+        }
       }
     };
     initAuth();
+    return () => {
+      isMounted = false;
+    };
   }, []);
 
   const handleLogout = async () => {
@@ -51,10 +61,6 @@ const App: React.FC = () => {
     <BrowserRouter>
       <Routes>
         <Route 
-          path="/" 
-          element={<Navigate to={user ? "/dashboard" : "/login"} replace />} 
-        />
-        <Route 
           path="/login" 
           element={user ? <Navigate to="/dashboard" replace /> : <LoginPage />} 
         />
@@ -72,6 +78,7 @@ const App: React.FC = () => {
             <Navigate to="/login" replace />
           )}
         >
+          <Route path="/" element={<Navigate to="/dashboard" replace />} />
           <Route path="/dashboard" element={
             <div className="p-8 h-full overflow-y-auto bg-gray-50">
               <DashboardPage />

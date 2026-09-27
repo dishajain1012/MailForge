@@ -32,7 +32,12 @@ router.post('/logout', (req: Request, res: Response, next) => {
       return next(err);
     }
     req.session.destroy(() => {
-      res.clearCookie('connect.sid'); // Default session cookie name
+      res.clearCookie('connect.sid', {
+        path: '/',
+        secure: process.env.NODE_ENV === 'production',
+        sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
+        httpOnly: true,
+      });
       res.json({ success: true, message: 'Logged out successfully' });
     });
   });
