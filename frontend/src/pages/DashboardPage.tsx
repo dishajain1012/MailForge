@@ -1,19 +1,38 @@
 import React, { useEffect, useState } from 'react';
-import { useSearchParams, useNavigate } from 'react-router-dom';
+import { useSearchParams, useNavigate, useLocation } from 'react-router-dom';
 import { Search, Filter, RefreshCw, Star } from 'lucide-react';
 import { getScheduledEmails, getSentEmails } from '../services/emails';
 import { EmailJob } from '../types/email';
 import { format } from 'date-fns';
 import { LoadingState } from '../components/LoadingState';
+import { Toast } from '../components/Toast';
 
 export const DashboardPage: React.FC = () => {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
+  const location = useLocation();
   const activeTab = searchParams.get('tab') || 'scheduled';
   
   const [emails, setEmails] = useState<EmailJob[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [toast, setToast] = useState<{ message: string; type: 'success' | 'error' } | null>(null);
+
+  useEffect(() => {
+    if (searchParams.get('slack_connected') === 'true') {
+      setToast({ message: 'Slack connected successfully', type: 'success' });
+      const newParams = new URLSearchParams(searchParams);
+      newParams.delete('slack_connected');
+      const searchStr = newParams.toString();
+      navigate(
+        {
+          pathname: location.pathname,
+          search: searchStr ? `?${searchStr}` : '',
+        },
+        { replace: true }
+      );
+    }
+  }, [searchParams, navigate, location.pathname]);
 
   const fetchEmails = async () => {
     setLoading(true);
@@ -37,7 +56,14 @@ export const DashboardPage: React.FC = () => {
   }, [activeTab]);
 
   return (
-    <div className="flex flex-col h-full bg-white rounded-xl shadow-[0_2px_4px_rgba(0,0,0,0.02)] border border-gray-200 overflow-hidden">
+    <div className="flex flex-col h-full bg-white rounded-xl shadow-[0_2px_4px_rgba(0,0,0,0.02)] border border-gray-200 overflow-hidden relative">
+      {toast && (
+        <Toast
+          message={toast.message}
+          type={toast.type}
+          onClose={() => setToast(null)}
+        />
+      )}
       
       {/* Top Header */}
       <div className="px-6 py-4 border-b border-gray-100 flex items-center justify-between bg-white shrink-0">

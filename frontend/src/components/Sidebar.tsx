@@ -3,6 +3,7 @@ import { useLocation, useNavigate } from 'react-router-dom';
 import { ChevronDown, Edit, Clock, Send, LogOut } from 'lucide-react';
 import { User } from '../types/auth';
 import { getScheduledEmails, getSentEmails } from '../services/emails';
+import { getSlackStatus, disconnectSlack } from '../services/slack';
 import { API_BASE_URL } from '../services/api';
 
 interface SidebarProps {
@@ -15,6 +16,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ user, onLogout }) => {
   const navigate = useNavigate();
   const [scheduledCount, setScheduledCount] = useState(0);
   const [sentCount, setSentCount] = useState(0);
+  const [slackConnected, setSlackConnected] = useState<boolean>(false);
 
   const fetchCounts = async () => {
     try {
@@ -29,12 +31,38 @@ export const Sidebar: React.FC<SidebarProps> = ({ user, onLogout }) => {
     }
   };
 
+  const fetchSlackStatus = async () => {
+    try {
+      const res = await getSlackStatus();
+      if (res.success && res.data) {
+        setSlackConnected(res.data.connected);
+      }
+    } catch (e) {
+      console.error('Failed to fetch Slack status:', e);
+    }
+  };
+
+  const handleDisconnectSlack = async () => {
+    try {
+      const res = await disconnectSlack();
+      if (res.success) {
+        setSlackConnected(false);
+      }
+    } catch (e) {
+      console.error('Failed to disconnect Slack:', e);
+    }
+  };
+
   useEffect(() => {
     fetchCounts();
+    fetchSlackStatus();
     // In a real app we might use websockets or polling, but this works for the foundation
-    const interval = setInterval(fetchCounts, 15000);
+    const interval = setInterval(() => {
+      fetchCounts();
+      fetchSlackStatus();
+    }, 15000);
     return () => clearInterval(interval);
-  }, [location.pathname]);
+  }, [location.pathname, location.search]);
 
   const activeTab = new URLSearchParams(location.search).get('tab') || 'scheduled';
 
@@ -109,13 +137,29 @@ export const Sidebar: React.FC<SidebarProps> = ({ user, onLogout }) => {
       </div>
 
       <div className="mt-auto p-4 flex flex-col space-y-2">
-        <a 
-          href={`${API_BASE_URL}/slack/connect`}
-          className="w-full flex items-center justify-center space-x-2 border border-gray-200 hover:bg-gray-50 text-gray-700 py-2 rounded-lg text-sm font-medium transition-colors"
-        >
-          <img src="https://upload.wikimedia.org/wikipedia/commons/d/d5/Slack_icon_2019.svg" alt="Slack" className="w-4 h-4" />
-          <span>Connect Slack</span>
-        </a>
+        {slackConnected ? (
+          <div className="w-full flex items-center justify-between border border-emerald-200 bg-emerald-50/80 px-3 py-2 rounded-lg text-sm transition-colors">
+            <div className="flex items-center space-x-2 overflow-hidden">
+              <img src="https://upload.wikimedia.org/wikipedia/commons/d/d5/Slack_icon_2019.svg" alt="Slack" className="w-4 h-4 shrink-0" />
+              <span className="font-medium text-xs text-emerald-900 truncate">Slack Connected</span>
+            </div>
+            <button 
+              onClick={handleDisconnectSlack}
+              className="text-[11px] text-red-600 hover:text-red-800 hover:underline font-medium shrink-0 ml-1"
+              title="Disconnect Slack"
+            >
+              Disconnect
+            </button>
+          </div>
+        ) : (
+          <a 
+            href={`${API_BASE_URL}/slack/connect`}
+            className="w-full flex items-center justify-center space-x-2 border border-gray-200 hover:bg-gray-50 text-gray-700 py-2 rounded-lg text-sm font-medium transition-colors"
+          >
+            <img src="https://upload.wikimedia.org/wikipedia/commons/d/d5/Slack_icon_2019.svg" alt="Slack" className="w-4 h-4" />
+            <span>Connect Slack</span>
+          </a>
+        )}
         <button 
           onClick={onLogout} 
           className="w-full flex items-center space-x-3 px-3 py-2 text-gray-500 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-colors text-sm font-medium"
