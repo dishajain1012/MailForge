@@ -3,6 +3,7 @@ import { useLocation, useNavigate } from 'react-router-dom';
 import { ChevronDown, Edit, Clock, Send, LogOut } from 'lucide-react';
 import { User } from '../types/auth';
 import { getScheduledEmails, getSentEmails } from '../services/emails';
+import { API_BASE_URL } from '../services/api';
 
 interface SidebarProps {
   user: User;
@@ -109,7 +110,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ user, onLogout }) => {
 
       <div className="mt-auto p-4 flex flex-col space-y-2">
         <a 
-          href="http://localhost:5000/api/slack/connect"
+          href={`${API_BASE_URL}/slack/connect`}
           className="w-full flex items-center justify-center space-x-2 border border-gray-200 hover:bg-gray-50 text-gray-700 py-2 rounded-lg text-sm font-medium transition-colors"
         >
           <img src="https://upload.wikimedia.org/wikipedia/commons/d/d5/Slack_icon_2019.svg" alt="Slack" className="w-4 h-4" />

@@ -1,8 +1,9 @@
 import React from 'react';
+import { API_BASE_URL } from '../services/api';
 
 export const LoginPage: React.FC = () => {
   const handleGoogleLogin = () => {
-    window.location.href = 'http://localhost:5000/api/auth/google';
+    window.location.href = `${API_BASE_URL}/auth/google`;
   };
 
   return (
