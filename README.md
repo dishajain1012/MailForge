@@ -1,5 +1,3 @@
-Absolutely. Here is a **full ready-to-paste README** written in a natural, practical style for a hiring assignment. It avoids exaggerated claims and keeps the technical details strong enough for a reviewer.
-
 
 # MailForge - Email Job Scheduler
 
