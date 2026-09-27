@@ -1,5 +1,5 @@
 import { prisma } from '../config/db';
-import { emailQueue } from '../queues/email.queue';
+import { emailQueue, EMAIL_QUEUE_NAME } from '../queues/email.queue';
 import { v4 as uuidv4 } from 'uuid';
 
 export interface ScheduleEmailsPayload {
@@ -77,7 +77,7 @@ export const scheduleEmailsService = async (payload: ScheduleEmailsPayload) => {
     const now = Date.now();
     const delayMs = Math.max(0, jobData.scheduledAt.getTime() - now);
 
-    await emailQueue.add(
+    const job = await emailQueue.add(
       'send-email',
       {
         emailJobId: jobData.id,
@@ -90,6 +90,15 @@ export const scheduleEmailsService = async (payload: ScheduleEmailsPayload) => {
         delay: delayMs
       }
     );
+
+    console.log(`[Producer] Added job to queue "${EMAIL_QUEUE_NAME}":`, {
+      jobId: job.id,
+      jobName: job.name,
+      delayMs,
+      scheduledAt: jobData.scheduledAt.toISOString(),
+      emailJobId: jobData.id,
+      recipient: jobData.recipient
+    });
   }
 
   return {

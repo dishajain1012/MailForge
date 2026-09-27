@@ -1,10 +1,12 @@
 import { Queue } from 'bullmq';
-import { createRedisConnection } from '../config/redis';
+import { createDedicatedRedisConnection, getSanitizedRedisHost } from '../config/redis';
 
 export const EMAIL_QUEUE_NAME = 'email-queue';
 
+console.log(`[Queue Setup] Initializing producer queue: "${EMAIL_QUEUE_NAME}" connected to Redis at ${getSanitizedRedisHost()}`);
+
 export const emailQueue = new Queue(EMAIL_QUEUE_NAME, {
-  connection: createRedisConnection(),
+  connection: createDedicatedRedisConnection(),
   defaultJobOptions: {
     attempts: 3,
     backoff: {
