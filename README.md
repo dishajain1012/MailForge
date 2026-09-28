@@ -441,4 +441,8 @@ This keeps scheduled emails from being permanently lost because of the rate limi
 
 Built as a full-stack hiring assignment demonstrating email scheduling, distributed job processing, rate limiting, OAuth integrations, and a React-based dashboard.
 
+## Demo
+
+[Watch the MailForge Demo](https://drive.google.com/file/d/1JJsHVPHljUY304Qi-Z1UWk05li5HnBfb/view?usp=sharing)
+
 
